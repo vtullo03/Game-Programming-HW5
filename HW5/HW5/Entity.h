@@ -85,8 +85,8 @@ public:
     glm::vec3  const get_movement()       const { return m_movement; };
     glm::vec3  const get_velocity()       const { return m_velocity; };
     glm::vec3  const get_acceleration()   const { return m_acceleration; };
-    int        const get_width()          const { return m_width; };
-    int        const get_height()         const { return m_height; };
+    float        const get_width()          const { return m_width; };
+    float        const get_height()         const { return m_height; };
     float      const get_speed()          const { return m_speed; };
     float      const get_jumping_power()  const { return m_jumping_power; };
     bool       const get_active_state()   const { return m_is_active; };

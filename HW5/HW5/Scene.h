@@ -24,8 +24,8 @@ struct GameState
     Entity* chain;
     Entity* enemies;
 
-    Mix_Music* bgm;
-    Mix_Chunk* jump_sfx;
+    //Mix_Music* bgm;
+    //Mix_Chunk* jump_sfx;
 
     int next_scene_id;
 };
@@ -33,6 +33,7 @@ struct GameState
 class Scene {
 public:
     int m_number_of_enemies = 1;
+    bool level_finished = false;
 
     GameState m_state;
 

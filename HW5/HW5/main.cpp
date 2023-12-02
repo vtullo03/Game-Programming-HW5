@@ -1,15 +1,15 @@
 #define GL_SILENCE_DEPRECATION
-#define STB_IMAGE_IMPLEMENTATION
-#define LOG(argument) std::cout << argument << '\n'
 #define GL_GLEXT_PROTOTYPES 1
 #define FIXED_TIMESTEP 0.0166666f
 #define LEVEL1_WIDTH 14
-#define LEVEL1_HEIGHT 5
+#define LEVEL1_HEIGHT 8
+#define LEVEL1_LEFT_EDGE 5.0f
 
 #ifdef _WINDOWS
 #include <GL/glew.h>
 #endif
 
+#include <vector>
 #include <SDL_mixer.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
@@ -57,6 +57,7 @@ MainMenu* g_main_menu;
 Level1* g_level_1;
 Level2* g_level_2;
 Level3* g_level_3;
+std::vector<Scene*> scenes;
 
 SDL_Window* g_display_window;
 bool g_game_is_running = true;
@@ -66,6 +67,8 @@ glm::mat4 g_view_matrix, g_projection_matrix;
 
 float g_previous_ticks = 0.0f;
 float g_accumulator = 0.0f;
+
+int level_index = 0;
 
 void switch_to_scene(Scene* scene)
 {
@@ -109,7 +112,13 @@ void initialise()
     g_level_1 = new Level1();
     g_level_2 = new Level2();
     g_level_3 = new Level3();
-    switch_to_scene(g_main_menu);
+
+    scenes.push_back(g_main_menu);
+    scenes.push_back(g_level_1);
+    scenes.push_back(g_level_2);
+    scenes.push_back(g_level_3);
+
+    switch_to_scene(g_level_1);
 
     // ————— BLENDING ————— //
     glEnable(GL_BLEND);
@@ -139,20 +148,21 @@ void process_input()
                 break;
 
             case SDLK_SPACE:
-                // ————— JUMPING ————— //
-                if (g_current_scene->m_state.player->m_collided_bottom)
+                // Jump
+                if (!g_current_scene->m_state.chain->get_active_state())
                 {
-                    g_current_scene->m_state.player->m_is_jumping = true;
-                    Mix_PlayChannel(-1, g_current_scene->m_state.jump_sfx, 0);
+                    if (g_current_scene->m_state.player->m_collided_bottom && !g_current_scene->m_state.player->m_is_jumping)
+                    {
+                        g_current_scene->m_state.player->m_is_jumping = true;
+                    }
+                    else if ((g_current_scene->m_state.player->m_wallcheck_left || g_current_scene->m_state.player->m_wallcheck_right)
+                        && !g_current_scene->m_state.player->m_is_wall_jumping)
+                    {
+                        g_current_scene->m_state.player->m_is_wall_jumping = true;
+                    }
                 }
                 break;
-
-            default:
-                break;
             }
-
-        default:
-            break;
         }
     }
 
@@ -222,6 +232,13 @@ void update()
         return;
     }
 
+    if (g_current_scene->m_state.player->chain_timer > 0.0f)
+    {
+        g_current_scene->m_state.player->move_to_target(g_current_scene->m_state.chain->get_position());
+        g_current_scene->m_state.player->m_has_gravity = false;
+    }
+    else g_current_scene->m_state.player->m_has_gravity = true;
+
     while (delta_time >= FIXED_TIMESTEP) {
         // ————— UPDATING THE SCENE (i.e. map, character, enemies...) ————— //
         g_current_scene->update(FIXED_TIMESTEP);
@@ -235,6 +252,9 @@ void update()
     g_view_matrix = glm::mat4(1.0f);
     g_view_matrix = glm::translate(g_view_matrix, glm::vec3(-g_current_scene->m_state.player->get_position().x, -2.25f 
         -g_current_scene->m_state.player->get_position().y, 0.0f));
+
+    // go to next scene if door flagged (or main menu flagged)
+    //if (g_current_scene->level_finished) switch_to_scene();
 }
 
 void render()
