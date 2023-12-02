@@ -17,9 +17,6 @@
 #include "Entity.h"
 #include "Map.h"
 
-/**
-    Notice that the game's state is now part of the Scene class, not the main file.
-*/
 struct GameState
 {
     Map* map;
