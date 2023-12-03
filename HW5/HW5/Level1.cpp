@@ -70,7 +70,10 @@ void Level1::initialise()
     // ENEMY
     m_state.enemies = new Entity();
     m_state.enemies->set_entity_type(ENEMY);
-
+    m_state.enemies->set_position(glm::vec3(2.0f, -1.0f, 0.0f));
+    m_state.enemies->set_speed(0.0f);
+    m_state.enemies->m_has_gravity = true;
+    m_state.enemies->m_texture_id = Utility::load_texture(ENEMY_FILEPATH);
 
     /*
      BGM and SFX*/
@@ -87,8 +90,9 @@ void Level1::initialise()
 void Level1::update(float delta_time)
 {
     m_state.player->update(delta_time, m_state.player, NULL, 0, m_state.map);
-    m_state.chain->update(delta_time, m_state.player, NULL, 0, m_state.map);
+    m_state.chain->update(delta_time, m_state.player, m_state.enemies, 1, m_state.map);
     m_state.door->update(delta_time, m_state.player, m_state.player, 1, m_state.map);
+    m_state.enemies->update(delta_time, m_state.player, m_state.chain, 1, m_state.map);
 }
 
 
@@ -98,4 +102,5 @@ void Level1::render(ShaderProgram* program)
     m_state.player->render(program);
     m_state.chain->render(program);
     m_state.door->render(program);
+    m_state.enemies->render(program);
 }

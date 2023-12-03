@@ -71,6 +71,10 @@ float g_accumulator = 0.0f;
 int next_level_index = 0;
 
 bool is_paused = false;
+bool is_finished = false;
+const char FONT_FILEPATH[] = "font.png";
+
+int number_of_lives = 3;
 
 void switch_to_scene(Scene* scene)
 {
@@ -187,7 +191,7 @@ void process_input()
 
     const Uint8* key_state = SDL_GetKeyboardState(NULL);
 
-    if (!g_current_scene->m_state.chain->get_active_state() && !is_paused)
+    if (!g_current_scene->m_state.chain->get_active_state() && !is_paused && !is_finished)
     {
         if (key_state[SDL_SCANCODE_A])
         {
@@ -245,7 +249,7 @@ void update()
         return;
     }
 
-    if (!is_paused)
+    if (!is_paused && !is_finished)
     {
         if (g_current_scene->m_state.player->chain_timer > 0.0f)
         {
@@ -273,6 +277,13 @@ void update()
 
         // go to next scene if door flagged (or main menu flagged)
         if (g_current_scene->m_state.door->level_finished) switch_to_scene(g_levels[next_level_index]);
+
+        if (g_current_scene->m_state.player->get_position().y <= -10.0f)
+        {
+            switch_to_scene(g_current_scene);
+            next_level_index -= 1;
+            number_of_lives -= 1;
+        }
     }
 }
 
@@ -284,6 +295,13 @@ void render()
 
     // ————— RENDERING THE SCENE (i.e. map, character, enemies...) ————— //
     g_current_scene->render(&g_shader_program);
+
+    if (number_of_lives == 0)
+    {
+        Utility::draw_text(&g_shader_program, Utility::load_texture(FONT_FILEPATH), "you lose", 0.5f,
+            -0.2f, glm::vec3(-g_current_scene->m_state.player->get_position().x, -g_current_scene->m_state.player->get_position().y, 0.0f));
+        is_finished = true;
+    }
 
     SDL_GL_SwapWindow(g_display_window);
 }
