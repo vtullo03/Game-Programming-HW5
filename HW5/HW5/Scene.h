@@ -22,18 +22,16 @@ struct GameState
     Map* map;
     Entity* player;
     Entity* chain;
+    Entity* door;
     Entity* enemies;
 
-    //Mix_Music* bgm;
+    Mix_Music* bgm;
     //Mix_Chunk* jump_sfx;
-
-    int next_scene_id;
 };
 
 class Scene {
 public:
     int m_number_of_enemies = 1;
-    bool level_finished = false;
 
     GameState m_state;
 

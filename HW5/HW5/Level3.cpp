@@ -8,7 +8,21 @@
 // MAPS
 const char MAP_TILESET_FILEPATH[] = "tileset.png",
 PLAYER_FILEPATH[] = "player_placeholder.png",
-CHAIN_FILEPATH[] = "chain_placeholder.png";
+CHAIN_FILEPATH[] = "chain_placeholder.png",
+DOOR_FILEPATH[] = "door_placeholder.png",
+ENEMY_FILEPATH[] = "enemy_placeholder.png";
+
+unsigned int LEVEL3_DATA[] =
+{
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0,
+    0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0,
+    0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0
+};
 
 Level3::~Level3()
 {
@@ -22,20 +36,8 @@ Level3::~Level3()
 
 void Level3::initialise()
 {
-    unsigned int LEVEL_DATA[] =
-    {
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0,
-        0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0,
-        0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-        1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0
-    };
-
     GLuint map_texture_id = Utility::load_texture(MAP_TILESET_FILEPATH);
-    m_state.map = new Map(LEVEL_WIDTH, LEVEL_HEIGHT, LEVEL_DATA, map_texture_id, 1.0f, 4, 1);
+    m_state.map = new Map(LEVEL_WIDTH, LEVEL_HEIGHT, LEVEL3_DATA, map_texture_id, 1.0f, 4, 1);
 
     // PLAYER
     m_state.player = new Entity();
@@ -55,23 +57,31 @@ void Level3::initialise()
     m_state.chain->m_texture_id = Utility::load_texture(CHAIN_FILEPATH);
     m_state.chain->disable();
 
+    // DOOR
+    m_state.door = new Entity();
+    m_state.door->set_entity_type(DOOR);
+    m_state.door->set_position(glm::vec3(0.0f, 0.0f, 0.0f));
+    m_state.door->set_speed(0.0f);
+    m_state.door->m_has_gravity = false;
+    m_state.door->m_texture_id = Utility::load_texture(DOOR_FILEPATH);
 
-    /**
-     BGM and SFX
+    /*
+     BGM and SFX*/
 
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
 
-    m_state.bgm = Mix_LoadMUS("assets/audio/dooblydoo.mp3");
+    m_state.bgm = Mix_LoadMUS("crowd_hammer.mp3");
     Mix_PlayMusic(m_state.bgm, -1);
-    Mix_VolumeMusic(0.0f);
+    Mix_VolumeMusic(10.0f);
 
-    m_state.jump_sfx = Mix_LoadWAV("assets/audio/bounce.wav");*/
+    //m_state.jump_sfx = Mix_LoadWAV("assets/audio/bounce.wav");*/
 }
 
 void Level3::update(float delta_time)
 {
     m_state.player->update(delta_time, m_state.player, NULL, 0, m_state.map);
     m_state.chain->update(delta_time, m_state.player, NULL, 0, m_state.map);
+    m_state.door->update(delta_time, m_state.player, m_state.player, 1, m_state.map);
 }
 
 
@@ -80,4 +90,5 @@ void Level3::render(ShaderProgram* program)
     m_state.map->render(program);
     m_state.player->render(program);
     m_state.chain->render(program);
+    m_state.door->render(program);
 }

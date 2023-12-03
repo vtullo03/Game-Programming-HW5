@@ -57,7 +57,7 @@ MainMenu* g_main_menu;
 Level1* g_level_1;
 Level2* g_level_2;
 Level3* g_level_3;
-std::vector<Scene*> scenes;
+Scene* g_levels[4];
 
 SDL_Window* g_display_window;
 bool g_game_is_running = true;
@@ -68,10 +68,13 @@ glm::mat4 g_view_matrix, g_projection_matrix;
 float g_previous_ticks = 0.0f;
 float g_accumulator = 0.0f;
 
-int level_index = 0;
+int next_level_index = 0;
+
+bool is_paused = false;
 
 void switch_to_scene(Scene* scene)
 {
+    next_level_index += 1;
     g_current_scene = scene;
     g_current_scene->initialise();
 }
@@ -113,12 +116,13 @@ void initialise()
     g_level_2 = new Level2();
     g_level_3 = new Level3();
 
-    scenes.push_back(g_main_menu);
-    scenes.push_back(g_level_1);
-    scenes.push_back(g_level_2);
-    scenes.push_back(g_level_3);
+    g_levels[0] = g_main_menu;
+    g_levels[1] = g_level_1;
+    g_levels[2] = g_level_2;
+    g_levels[3] = g_level_3;
 
-    switch_to_scene(g_level_1);
+    // Start at level A
+    switch_to_scene(g_levels[0]);
 
     // ————— BLENDING ————— //
     glEnable(GL_BLEND);
@@ -127,14 +131,18 @@ void initialise()
 
 void process_input()
 {
-    g_current_scene->m_state.player->set_movement(glm::vec3(0.0f));
+    // reset player movement vector
+    if (next_level_index != 0)
+    {
+        g_current_scene->m_state.player->set_movement(glm::vec3(0.0f));
+    }
 
     SDL_Event event;
+    // check if game is quit
     while (SDL_PollEvent(&event))
     {
-        // ————— KEYSTROKES ————— //
         switch (event.type) {
-            // ————— END GAME ————— //
+            // End game
         case SDL_QUIT:
         case SDL_WINDOWEVENT_CLOSE:
             g_game_is_running = false;
@@ -162,13 +170,24 @@ void process_input()
                     }
                 }
                 break;
+
+            case SDLK_RETURN:
+                if (g_current_scene == g_main_menu)
+                {
+                    std::cout << next_level_index;
+                    switch_to_scene(g_levels[next_level_index]);
+                }
+                break;
+            case SDLK_p:
+                is_paused = !is_paused;
+                break;
             }
         }
     }
 
     const Uint8* key_state = SDL_GetKeyboardState(NULL);
 
-    if (!g_current_scene->m_state.chain->get_active_state())
+    if (!g_current_scene->m_state.chain->get_active_state() && !is_paused)
     {
         if (key_state[SDL_SCANCODE_A])
         {
@@ -209,12 +228,6 @@ void process_input()
             }
         }
     }
-
-    // ————— NORMALISATION ————— //
-    if (glm::length(g_current_scene->m_state.player->get_movement()) > 1.0f)
-    {
-        g_current_scene->m_state.player->set_movement(glm::normalize(g_current_scene->m_state.player->get_movement()));
-    }
 }
 
 void update()
@@ -232,29 +245,35 @@ void update()
         return;
     }
 
-    if (g_current_scene->m_state.player->chain_timer > 0.0f)
+    if (!is_paused)
     {
-        g_current_scene->m_state.player->move_to_target(g_current_scene->m_state.chain->get_position());
-        g_current_scene->m_state.player->m_has_gravity = false;
+        if (g_current_scene->m_state.player->chain_timer > 0.0f)
+        {
+            g_current_scene->m_state.player->move_to_target(g_current_scene->m_state.chain->get_position());
+            g_current_scene->m_state.player->m_has_gravity = false;
+        }
+        else g_current_scene->m_state.player->m_has_gravity = true;
+
+        while (delta_time >= FIXED_TIMESTEP) {
+            // ————— UPDATING THE SCENE (i.e. map, character, enemies...) ————— //
+            g_current_scene->update(FIXED_TIMESTEP);
+
+            delta_time -= FIXED_TIMESTEP;
+        }
+
+        g_accumulator = delta_time;
+
+        // camera follow
+        g_view_matrix = glm::mat4(1.0f);
+        if (next_level_index != 0)
+        {
+            g_view_matrix = glm::translate(g_view_matrix, glm::vec3(-g_current_scene->m_state.player->get_position().x, -2.25f
+                - g_current_scene->m_state.player->get_position().y, 0.0f));
+        }
+
+        // go to next scene if door flagged (or main menu flagged)
+        if (g_current_scene->m_state.door->level_finished) switch_to_scene(g_levels[next_level_index]);
     }
-    else g_current_scene->m_state.player->m_has_gravity = true;
-
-    while (delta_time >= FIXED_TIMESTEP) {
-        // ————— UPDATING THE SCENE (i.e. map, character, enemies...) ————— //
-        g_current_scene->update(FIXED_TIMESTEP);
-
-        delta_time -= FIXED_TIMESTEP;
-    }
-
-    g_accumulator = delta_time;
-
-    // camera follow
-    g_view_matrix = glm::mat4(1.0f);
-    g_view_matrix = glm::translate(g_view_matrix, glm::vec3(-g_current_scene->m_state.player->get_position().x, -2.25f 
-        -g_current_scene->m_state.player->get_position().y, 0.0f));
-
-    // go to next scene if door flagged (or main menu flagged)
-    //if (g_current_scene->level_finished) switch_to_scene();
 }
 
 void render()

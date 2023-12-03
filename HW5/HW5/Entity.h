@@ -1,6 +1,6 @@
 #pragma once
 
-enum EntityType { PLAYER, CHAIN };
+enum EntityType { PLAYER, CHAIN, DOOR, ENEMY };
 enum ChainState { LAUNCH, SEARCHING, STICK, RETRACT };
 enum ChainDirection { LEFT, RIGHT, UP, DOWN };
 
@@ -53,6 +53,9 @@ public:
     ChainDirection chain_direction = RIGHT;
     ChainState chain_state = LAUNCH;
     float chain_timer = 0.0f;
+
+    // door
+    bool level_finished = false;
 
     // default constructor
     Entity();
