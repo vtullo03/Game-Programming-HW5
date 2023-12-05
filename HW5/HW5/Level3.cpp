@@ -30,8 +30,8 @@ Level3::~Level3()
     delete    m_state.player;
     delete    m_state.map;
     delete m_state.chain;
-    //Mix_FreeChunk(m_state.jump_sfx);
-    //Mix_FreeMusic(m_state.bgm);
+    Mix_FreeChunk(m_state.jump_sfx);
+    Mix_FreeMusic(m_state.bgm);
 }
 
 void Level3::initialise()
@@ -42,7 +42,7 @@ void Level3::initialise()
     // PLAYER
     m_state.player = new Entity();
     m_state.player->set_entity_type(PLAYER);
-    m_state.player->set_position(glm::vec3(3.0f, -3.0f, 0.0f));
+    m_state.player->set_position(glm::vec3(1.0f, -6.0f, 0.0f));
     m_state.player->set_movement(glm::vec3(0.0f, 0.0f, 0.0f));
     m_state.player->set_speed(3.75f);
     m_state.player->set_jumping_power(6.0f);
@@ -53,6 +53,7 @@ void Level3::initialise()
     m_state.chain = new Entity();
     m_state.chain->set_entity_type(CHAIN);
     m_state.chain->set_speed(3.75f);
+    m_state.chain->set_movement(glm::vec3(0.0f, 0.0f, 0.0f));
     m_state.chain->m_has_gravity = false;
     m_state.chain->m_texture_id = Utility::load_texture(CHAIN_FILEPATH);
     m_state.chain->disable();
@@ -65,6 +66,16 @@ void Level3::initialise()
     m_state.door->m_has_gravity = false;
     m_state.door->m_texture_id = Utility::load_texture(DOOR_FILEPATH);
 
+    // ENEMY
+    m_state.enemies = new Entity();
+    m_state.enemies->set_entity_type(ENEMY);
+    m_state.enemies->set_ai_type(PATROL);
+    m_state.enemies->set_ai_state(IDLE);
+    m_state.enemies->set_position(glm::vec3(5.0f, 0.0f, 0.0f));
+    m_state.enemies->set_speed(0.5f);
+    m_state.enemies->m_has_gravity = true;
+    m_state.enemies->m_texture_id = Utility::load_texture(ENEMY_FILEPATH);
+
     /*
      BGM and SFX*/
 
@@ -74,14 +85,16 @@ void Level3::initialise()
     Mix_PlayMusic(m_state.bgm, -1);
     Mix_VolumeMusic(10.0f);
 
-    //m_state.jump_sfx = Mix_LoadWAV("assets/audio/bounce.wav");*/
+    m_state.jump_sfx = Mix_LoadWAV("player_jump.wav");
+    m_state.chain_sfx = Mix_LoadWAV("chain_throw.wav");
 }
 
 void Level3::update(float delta_time)
 {
     m_state.player->update(delta_time, m_state.player, NULL, 0, m_state.map);
-    m_state.chain->update(delta_time, m_state.player, NULL, 0, m_state.map);
+    m_state.chain->update(delta_time, m_state.player, m_state.enemies, 1, m_state.map);
     m_state.door->update(delta_time, m_state.player, m_state.player, 1, m_state.map);
+    m_state.enemies->update(delta_time, m_state.player, m_state.player, 1, m_state.map);
 }
 
 
@@ -91,4 +104,5 @@ void Level3::render(ShaderProgram* program)
     m_state.player->render(program);
     m_state.chain->render(program);
     m_state.door->render(program);
+    m_state.enemies->render(program);
 }

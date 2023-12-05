@@ -26,7 +26,8 @@ struct GameState
     Entity* enemies;
 
     Mix_Music* bgm;
-    //Mix_Chunk* jump_sfx;
+    Mix_Chunk* jump_sfx;
+    Mix_Chunk* chain_sfx;
 };
 
 class Scene {

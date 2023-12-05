@@ -30,8 +30,8 @@ Level2::~Level2()
     delete    m_state.player;
     delete    m_state.map;
     delete m_state.chain;
-    //Mix_FreeChunk(m_state.jump_sfx);
-    //Mix_FreeMusic(m_state.bgm);
+    Mix_FreeChunk(m_state.jump_sfx);
+    Mix_FreeMusic(m_state.bgm);
 }
 
 void Level2::initialise()
@@ -66,6 +66,16 @@ void Level2::initialise()
     m_state.door->m_has_gravity = false;
     m_state.door->m_texture_id = Utility::load_texture(DOOR_FILEPATH);
 
+    // ENEMY
+    m_state.enemies = new Entity();
+    m_state.enemies->set_entity_type(ENEMY);
+    m_state.enemies->set_ai_type(PATROL);
+    m_state.enemies->set_ai_state(IDLE);
+    m_state.enemies->set_position(glm::vec3(0.5f, -3.0f, 0.0f));
+    m_state.enemies->set_speed(0.5f);
+    m_state.enemies->m_has_gravity = true;
+    m_state.enemies->m_texture_id = Utility::load_texture(ENEMY_FILEPATH);
+
     /*
      BGM and SFX*/
 
@@ -75,14 +85,16 @@ void Level2::initialise()
     Mix_PlayMusic(m_state.bgm, -1);
     Mix_VolumeMusic(10.0f);
 
-    //m_state.jump_sfx = Mix_LoadWAV("assets/audio/bounce.wav");*/
+    m_state.jump_sfx = Mix_LoadWAV("player_jump.wav");
+    m_state.chain_sfx = Mix_LoadWAV("chain_throw.wav");
 }
 
 void Level2::update(float delta_time)
 {
     m_state.player->update(delta_time, m_state.player, NULL, 0, m_state.map);
-    m_state.chain->update(delta_time, m_state.player, NULL, 0, m_state.map);
+    m_state.chain->update(delta_time, m_state.player, m_state.enemies, 1, m_state.map);
     m_state.door->update(delta_time, m_state.player, m_state.player, 1, m_state.map);
+    m_state.enemies->update(delta_time, m_state.player, m_state.player, 1, m_state.map);
 }
 
 
@@ -92,4 +104,5 @@ void Level2::render(ShaderProgram* program)
     m_state.player->render(program);
     m_state.chain->render(program);
     m_state.door->render(program);
+    m_state.enemies->render(program);
 }

@@ -47,6 +47,7 @@ void Entity::update(float delta_time, Entity* player, Entity* objects, int objec
     // if not active -- then can't update, treat like deletion
     if (!m_is_active) return;
     if (m_entity_type == CHAIN) chain_activate(player, delta_time);
+    if (m_entity_type == ENEMY) ai_activate(player, delta_time);
 
     // reset collision checks every frame
     // entity collision checks
@@ -111,7 +112,12 @@ void const Entity::check_collision_y(Entity* collidable_entities, int collidable
         if (check_collision(collidable_entity))
         {
             if (m_entity_type == DOOR && collidable_entity->m_entity_type == PLAYER) level_finished = true;
-            if (m_entity_type == ENEMY && collidable_entity->m_entity_type == CHAIN) disable();
+            if (m_entity_type == CHAIN && collidable_entity->m_entity_type == ENEMY) collidable_entity->disable();
+            if (m_entity_type == ENEMY && collidable_entity->m_entity_type == PLAYER)
+            {
+                std::cout << "RAH";
+                touching_player = true;
+            }
             float y_distance = fabs(m_position.y - collidable_entity->get_position().y);
             float y_overlap = fabs(y_distance - (m_height / 2.0f) - (collidable_entity->get_height() / 2.0f));
             if (m_velocity.y > 0) {
@@ -225,7 +231,12 @@ void const Entity::check_collision_x(Entity* collidable_entities, int collidable
         if (check_collision(collidable_entity))
         {
             if (m_entity_type == DOOR && collidable_entity->m_entity_type == PLAYER) level_finished = true;
-            if (m_entity_type == ENEMY && collidable_entity->m_entity_type == CHAIN) disable();
+            if (m_entity_type == CHAIN && collidable_entity->m_entity_type == ENEMY) collidable_entity->disable();
+            if (m_entity_type == ENEMY && collidable_entity->m_entity_type == PLAYER)
+            {
+                std::cout << "RAH";
+                touching_player = true;
+            }
             float x_distance = fabs(m_position.x - collidable_entity->get_position().x);
             float x_overlap = fabs(x_distance - (m_width / 2.0f) - (collidable_entity->get_width() / 2.0f));
             if (m_velocity.x > 0) {
@@ -411,4 +422,82 @@ void Entity::move_to_target(const glm::vec3& target_position)
     else if (target_position.x > m_position.x) move_right();
     if (target_position.y < m_position.y) move_down();
     else if (target_position.y > m_position.y) move_up();
+}
+
+// AI SCRIPTS HERE
+
+/*
+* Activates each enemies' AI
+*
+* @param player, the ENTITY object that represents the player
+* so that enemies can affect the player (follow, kill,etc.)
+* @param delta_time, the real life time in seconds
+* for enemies that incorporate cooldowns
+*/
+void Entity::ai_activate(Entity* player, float delta_time)
+{
+    switch (m_ai_type)
+    {
+    case PATROL:
+        ai_patrol(player, delta_time);
+        break;
+
+    default:
+        break;
+    }
+}
+
+/*
+* Immiedately goes into the patroling state and starts a countdown
+* When the countdown ends switch directions and reset countdown
+* When the player gets into line of sight, enter the chasing state
+*
+* @param player, the player ENTITY object
+* @param delta_time, real life time in seconds
+*/
+void Entity::ai_patrol(Entity* player, float delta_time)
+{
+    switch (m_ai_state)
+    {
+    case IDLE:
+        is_facing_right = true;
+        m_ai_state = PATROLING;
+        break;
+
+    case PATROLING:
+        if (is_facing_right)
+        {
+            m_movement = glm::vec3(1.0f, 0.0f, 0.0f);
+        }
+        else
+        {
+            m_movement = glm::vec3(-1.0f, 0.0f, 0.0f);
+        }
+
+        ability_timer -= delta_time;
+        if (ability_timer <= 0.0f)
+        {
+            ability_timer = 2.0f;
+            is_facing_right = !is_facing_right;
+        }
+
+        if ((glm::abs(m_position.x - player->get_position().x) < 0.25f)
+            && (m_position.y == player->get_position().y) &&
+            is_facing_right == player->is_facing_right)
+        {
+            m_ai_state = CHASING;
+        }
+        break;
+
+    case CHASING:
+        if (is_facing_right)
+        {
+            m_movement = glm::vec3(1.0f, 0.0f, 0.0f);
+        }
+        else
+        {
+            m_movement = glm::vec3(-1.0f, 0.0f, 0.0f);
+        }
+        break;
+    }
 }

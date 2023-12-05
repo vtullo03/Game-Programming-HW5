@@ -10,7 +10,8 @@ const char MAP_TILESET_FILEPATH[] = "tileset.png",
 PLAYER_FILEPATH[] = "player_placeholder.png",
 CHAIN_FILEPATH[] = "chain_placeholder.png",
 DOOR_FILEPATH[] = "door_placeholder.png",
-ENEMY_FILEPATH[] = "enemy_placeholder.png";
+ENEMY_FILEPATH[] = "enemy_placeholder.png",
+FONT_FILEPATH[] = "font.png";
 
 unsigned int MAINMENU_DATA[] =
 {
@@ -30,8 +31,8 @@ MainMenu::~MainMenu()
     delete    m_state.player;
     delete    m_state.map;
     delete m_state.chain;
-    //Mix_FreeChunk(m_state.jump_sfx);
-    //Mix_FreeMusic(m_state.bgm);
+    Mix_FreeChunk(m_state.jump_sfx);
+    Mix_FreeMusic(m_state.bgm);
 }
 
 void MainMenu::initialise()
@@ -81,6 +82,10 @@ void MainMenu::update(float delta_time)
 
 void MainMenu::render(ShaderProgram* program)
 {
+    Utility::draw_text(program, Utility::load_texture(FONT_FILEPATH), "CHAINED COWBOY", 0.5f,
+        -0.2f, glm::vec3(-3.0f, 2.0f, 0.0f));
+    Utility::draw_text(program, Utility::load_texture(FONT_FILEPATH), "Press enter to start", 0.5f,
+        -0.2f, glm::vec3(-3.0f, 0.0f, 0.0f));
     m_state.map->render(program);
     m_state.player->render(program);
     m_state.chain->render(program);

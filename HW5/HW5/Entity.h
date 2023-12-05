@@ -3,6 +3,8 @@
 enum EntityType { PLAYER, CHAIN, DOOR, ENEMY };
 enum ChainState { LAUNCH, SEARCHING, STICK, RETRACT };
 enum ChainDirection { LEFT, RIGHT, UP, DOWN };
+enum AIState { IDLE, PATROLING, CHASING };
+enum AIType { PATROL };
 
 #include "Map.h"
 
@@ -22,6 +24,10 @@ private:
     float m_height = 1.0f;
     float m_speed = 0.0f;
     float m_jumping_power = 0.0f;
+
+    // ENEMY AI
+    AIType     m_ai_type;
+    AIState    m_ai_state;
 
     EntityType m_entity_type; // type of entity - treat as NAME
 
@@ -45,6 +51,9 @@ public:
     bool m_wallcheck_right = false;
     float m_wallcheck_offset = 0.15f;
 
+    bool is_facing_right = true;
+    float ability_timer = 2.0f;
+
     // physics - jumping 
     bool  m_is_jumping = false;
     bool m_is_wall_jumping = false;
@@ -56,6 +65,10 @@ public:
 
     // door
     bool level_finished = false;
+
+    // enemy
+    float guard_timer = 2.0f;
+    bool touching_player = false;
 
     // default constructor
     Entity();
@@ -76,6 +89,10 @@ public:
     void chain_activate(Entity* player, float delta_time);
     void move_to_target(const glm::vec3& target_position);
 
+    // ai scripts
+    void ai_activate(Entity* player, float delta_time);
+    void ai_patrol(Entity* player, float delta_time);
+
     // movement
     void move_left() { m_movement.x = -1.0f; };
     void move_right() { m_movement.x = 1.0f; };
@@ -93,6 +110,8 @@ public:
     float      const get_speed()          const { return m_speed; };
     float      const get_jumping_power()  const { return m_jumping_power; };
     bool       const get_active_state()   const { return m_is_active; };
+    AIType     const get_ai_type()        const { return m_ai_type; };
+    AIState    const get_ai_state()       const { return m_ai_state; };
 
     // SETTLERS
     void const set_entity_type(EntityType new_entity_type) { m_entity_type = new_entity_type; };
@@ -104,6 +123,8 @@ public:
     void const set_height(float new_height) { m_height = new_height; };
     void const set_speed(float new_speed) { m_speed = new_speed; };
     void const set_jumping_power(float new_jumping_power) { m_jumping_power = new_jumping_power; };
+    void const set_ai_type(AIType new_ai_type) { m_ai_type = new_ai_type; };
+    void const set_ai_state(AIState new_state) { m_ai_state = new_state; };
 
     void const disable() { m_is_active = false; };
     void const enable() { m_is_active = true; };

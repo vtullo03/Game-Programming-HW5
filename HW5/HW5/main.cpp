@@ -27,6 +27,8 @@
 #include "Level1.h"
 #include "Level2.h"
 #include "Level3.h"
+#include "Won.h"
+#include "Lost.h"
 
 
 // CONSTS
@@ -57,7 +59,10 @@ MainMenu* g_main_menu;
 Level1* g_level_1;
 Level2* g_level_2;
 Level3* g_level_3;
-Scene* g_levels[4];
+Won* g_level_won;
+Lost* g_level_lost;
+
+Scene* g_levels[6];
 
 SDL_Window* g_display_window;
 bool g_game_is_running = true;
@@ -71,7 +76,7 @@ float g_accumulator = 0.0f;
 int next_level_index = 0;
 
 bool is_paused = false;
-bool is_finished = false;
+bool is_won = false;
 const char FONT_FILEPATH[] = "font.png";
 
 int number_of_lives = 3;
@@ -119,11 +124,15 @@ void initialise()
     g_level_1 = new Level1();
     g_level_2 = new Level2();
     g_level_3 = new Level3();
+    g_level_won = new Won();
+    g_level_lost = new Lost();
 
     g_levels[0] = g_main_menu;
     g_levels[1] = g_level_1;
     g_levels[2] = g_level_2;
     g_levels[3] = g_level_3;
+    g_levels[4] = g_level_won;
+    g_levels[5] = g_level_lost;
 
     // Start at level A
     switch_to_scene(g_levels[0]);
@@ -172,13 +181,13 @@ void process_input()
                     {
                         g_current_scene->m_state.player->m_is_wall_jumping = true;
                     }
+                    Mix_PlayChannel(-1, g_current_scene->m_state.jump_sfx, 0);
                 }
                 break;
 
             case SDLK_RETURN:
                 if (g_current_scene == g_main_menu)
                 {
-                    std::cout << next_level_index;
                     switch_to_scene(g_levels[next_level_index]);
                 }
                 break;
@@ -191,7 +200,7 @@ void process_input()
 
     const Uint8* key_state = SDL_GetKeyboardState(NULL);
 
-    if (!g_current_scene->m_state.chain->get_active_state() && !is_paused && !is_finished)
+    if (!g_current_scene->m_state.chain->get_active_state() && !is_paused)
     {
         if (key_state[SDL_SCANCODE_A])
         {
@@ -201,6 +210,7 @@ void process_input()
                 g_current_scene->m_state.chain->enable();
                 g_current_scene->m_state.chain->chain_direction = LEFT;
                 g_current_scene->m_state.chain->chain_state = LAUNCH;
+                Mix_PlayChannel(-1, g_current_scene->m_state.chain_sfx, 0);
             }
         }
         else if (key_state[SDL_SCANCODE_D])
@@ -211,6 +221,7 @@ void process_input()
                 g_current_scene->m_state.chain->enable();
                 g_current_scene->m_state.chain->chain_direction = RIGHT;
                 g_current_scene->m_state.chain->chain_state = LAUNCH;
+                Mix_PlayChannel(-1, g_current_scene->m_state.chain_sfx, 0);
             }
         }
         else if (key_state[SDL_SCANCODE_W])
@@ -220,6 +231,7 @@ void process_input()
                 g_current_scene->m_state.chain->enable();
                 g_current_scene->m_state.chain->chain_direction = UP;
                 g_current_scene->m_state.chain->chain_state = LAUNCH;
+                Mix_PlayChannel(-1, g_current_scene->m_state.chain_sfx, 0);
             }
         }
         else if (key_state[SDL_SCANCODE_S])
@@ -229,6 +241,7 @@ void process_input()
                 g_current_scene->m_state.chain->enable();
                 g_current_scene->m_state.chain->chain_direction = DOWN;
                 g_current_scene->m_state.chain->chain_state = LAUNCH;
+                Mix_PlayChannel(-1, g_current_scene->m_state.chain_sfx, 0);
             }
         }
     }
@@ -249,7 +262,7 @@ void update()
         return;
     }
 
-    if (!is_paused && !is_finished)
+    if (!is_paused)
     {
         if (g_current_scene->m_state.player->chain_timer > 0.0f)
         {
@@ -284,7 +297,15 @@ void update()
             next_level_index -= 1;
             number_of_lives -= 1;
         }
+
+        if (g_current_scene->m_state.enemies->touching_player)
+        {
+            switch_to_scene(g_current_scene);
+            next_level_index -= 1;
+            number_of_lives -= 1;
+        }
     }
+    if (number_of_lives == 0) switch_to_scene(g_level_lost);
 }
 
 void render()
@@ -295,14 +316,6 @@ void render()
 
     // ————— RENDERING THE SCENE (i.e. map, character, enemies...) ————— //
     g_current_scene->render(&g_shader_program);
-
-    if (number_of_lives == 0)
-    {
-        Utility::draw_text(&g_shader_program, Utility::load_texture(FONT_FILEPATH), "you lose", 0.5f,
-            -0.2f, glm::vec3(-g_current_scene->m_state.player->get_position().x, -g_current_scene->m_state.player->get_position().y, 0.0f));
-        is_finished = true;
-    }
-
     SDL_GL_SwapWindow(g_display_window);
 }
 
