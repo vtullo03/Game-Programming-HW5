@@ -42,9 +42,9 @@ VIEWPORT_WIDTH = WINDOW_WIDTH,
 VIEWPORT_HEIGHT = WINDOW_HEIGHT;
 
 // background color -- CHANGE LATER
-const float BG_RED = 0.68f,
-BG_BLUE = 0.88f,
-BG_GREEN = 0.88f,
+const float BG_RED = 0.976f,
+BG_BLUE = 0.694f,
+BG_GREEN = 0.557f,
 BG_OPACITY = 1.0f;
 
 // shaders

@@ -6,22 +6,22 @@
 
 // texture filepaths
 // MAPS
-const char MAP_TILESET_FILEPATH[] = "tileset.png",
-PLAYER_FILEPATH[] = "player_placeholder.png",
-CHAIN_FILEPATH[] = "chain_placeholder.png",
-DOOR_FILEPATH[] = "door_placeholder.png",
-ENEMY_FILEPATH[] = "enemy_placeholder.png";
+const char MAP_TILESET_FILEPATH[] = "Tileset.png",
+PLAYER_FILEPATH[] = "Player.png",
+CHAIN_FILEPATH[] = "Chain.png",
+DOOR_FILEPATH[] = "Door.png",
+ENEMY_FILEPATH[] = "Enemy.png";
 
 unsigned int LEVEL2_DATA[] =
 {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-    0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3,
+    0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0
+    0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0
 };
 
 Level2::~Level2()
@@ -38,7 +38,7 @@ void Level2::initialise()
 {
 
     GLuint map_texture_id = Utility::load_texture(MAP_TILESET_FILEPATH);
-    m_state.map = new Map(LEVEL_WIDTH, LEVEL_HEIGHT, LEVEL2_DATA, map_texture_id, 1.0f, 4, 1);
+    m_state.map = new Map(LEVEL_WIDTH, LEVEL_HEIGHT, LEVEL2_DATA, map_texture_id, 1.0f, 3, 1);
 
     // PLAYER
     m_state.player = new Entity();

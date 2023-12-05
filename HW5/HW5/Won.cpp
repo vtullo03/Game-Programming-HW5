@@ -6,11 +6,11 @@
 
 // texture filepaths
 // MAPS
-const char MAP_TILESET_FILEPATH[] = "tileset.png",
-PLAYER_FILEPATH[] = "player_placeholder.png",
-CHAIN_FILEPATH[] = "chain_placeholder.png",
-DOOR_FILEPATH[] = "door_placeholder.png",
-ENEMY_FILEPATH[] = "enemy_placeholder.png",
+const char MAP_TILESET_FILEPATH[] = "Tileset.png",
+PLAYER_FILEPATH[] = "Player.png",
+CHAIN_FILEPATH[] = "Chain.png",
+DOOR_FILEPATH[] = "Door.png",
+ENEMY_FILEPATH[] = "Enemy.png",
 FONT_FILEPATH[] = "font.png";
 
 unsigned int WON_DATA[] =
