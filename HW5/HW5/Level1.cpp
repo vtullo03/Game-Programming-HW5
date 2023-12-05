@@ -102,6 +102,7 @@ void Level1::update(float delta_time)
 
 void Level1::render(ShaderProgram* program)
 {
+    // Tutorial notes
     Utility::draw_text(program, Utility::load_texture(FONT_FILEPATH), "press L and movement key to grapple", 0.5f,
         -0.2f, glm::vec3(1.0f, -3.75f, 0.0f));
     Utility::draw_text(program, Utility::load_texture(FONT_FILEPATH), "grappling to enemies kills them", 0.5f,

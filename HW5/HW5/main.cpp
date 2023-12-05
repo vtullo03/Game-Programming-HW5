@@ -134,7 +134,7 @@ void initialise()
     g_levels[4] = g_level_won;
     g_levels[5] = g_level_lost;
 
-    // Start at level A
+    // Start at first level
     switch_to_scene(g_levels[0]);
 
     // ————— BLENDING ————— //
@@ -186,12 +186,14 @@ void process_input()
                 break;
 
             case SDLK_RETURN:
+                // only switch if on main menu screen
                 if (g_current_scene == g_main_menu)
                 {
                     switch_to_scene(g_levels[next_level_index]);
                 }
                 break;
             case SDLK_p:
+                // Pause game with a keystroke
                 is_paused = !is_paused;
                 break;
             }
@@ -200,6 +202,11 @@ void process_input()
 
     const Uint8* key_state = SDL_GetKeyboardState(NULL);
 
+    /*
+    * Uses enum to make sure chain goes in the direction that the player is moving in
+    * Player freeze and cannot do any actions when they are being pulled by the grapple
+    * Nor can they fall due to the gravity
+    */
     if (!g_current_scene->m_state.chain->get_active_state() && !is_paused)
     {
         if (key_state[SDL_SCANCODE_A])
@@ -293,6 +300,8 @@ void update()
 
         if (g_current_scene->m_state.player->get_position().y <= -10.0f)
         {
+            // if past death point on y -- player loses a life
+            // restart current scene
             switch_to_scene(g_current_scene);
             next_level_index -= 1;
             number_of_lives -= 1;
@@ -300,6 +309,8 @@ void update()
 
         if (g_current_scene->m_state.enemies->touching_player)
         {
+            // if player touches an enemy -- player loses a life
+            // restart current scene
             switch_to_scene(g_current_scene);
             next_level_index -= 1;
             number_of_lives -= 1;
